@@ -30,5 +30,9 @@ module.exports = new EntitySchema({
             target: "Note",
             inverseSide: "user"
         }
+    },
+    roles: {
+        type: "simple-array",
+        default: "user"
     }
 });

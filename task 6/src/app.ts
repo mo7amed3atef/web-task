@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "crypto";
 import { AppDataSource } from "./db";
 import { Note } from "./note.entity";
 import { ILike } from "typeorm";
@@ -11,7 +12,6 @@ const PORT = 3000;
 
 const noteRepository = () => AppDataSource.getRepository(Note);
 
-// GET - Get all notes + Search
 app.get("/notes", async (req, res) => {
     try {
         const search = req.query.search as string;
@@ -42,8 +42,6 @@ app.get("/notes", async (req, res) => {
     }
 });
 
-
-// GET - Get note by ID
 app.get("/notes/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -65,15 +63,16 @@ app.get("/notes/:id", async (req, res) => {
     }
 });
 
-
-// POST - Create note
 app.post("/notes", async (req, res) => {
     try {
         const { title, content } = req.body;
 
+        const token = crypto.randomBytes(16).toString("hex");
+
         const note = noteRepository().create({
             title,
             content,
+            token,
         });
 
         const result = await noteRepository().save(note);
@@ -87,8 +86,6 @@ app.post("/notes", async (req, res) => {
     }
 });
 
-
-// PUT - Update note
 app.put("/notes/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -116,8 +113,6 @@ app.put("/notes/:id", async (req, res) => {
     }
 });
 
-
-// DELETE - Delete note
 app.delete("/notes/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -141,8 +136,6 @@ app.delete("/notes/:id", async (req, res) => {
     }
 });
 
-
-// Connect to database
 AppDataSource.initialize()
     .then(() => {
         console.log("Database connected successfully");
@@ -154,3 +147,4 @@ AppDataSource.initialize()
     .catch((error) => {
         console.error("Database connection failed:", error);
     });
+

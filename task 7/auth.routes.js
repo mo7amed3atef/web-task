@@ -20,10 +20,11 @@ router.post("/register", async (req, res) => {
             typeof password !== "string" ||
             !username.trim() ||
             !email.trim() ||
-            !password
+            !password ||
+            roles !== "user"
         ) {
             return res.status(400).json({
-                message: "Username, email and password are required"
+                message: "Username, email, password and role are required"
             });
         }
 
@@ -53,7 +54,8 @@ router.post("/register", async (req, res) => {
         const user = userRepository.create({
             username: username.trim(),
             email: email.trim().toLowerCase(),
-            password: hashedPassword
+            password: hashedPassword,
+            roles: "user" // Set default role to "user"
         });
 
         const savedUser = await userRepository.save(user);
@@ -63,7 +65,8 @@ router.post("/register", async (req, res) => {
             data: {
                 id: savedUser.id,
                 username: savedUser.username,
-                email: savedUser.email
+                email: savedUser.email,
+                roles: savedUser.roles
             }
         });
     } catch (error) {
@@ -93,7 +96,8 @@ router.post("/login", async (req, res) => {
             !password
         ) {
             return res.status(400).json({
-                message: "Email and password are required"
+                message: "Email and password are required",
+                roles: "user"
             });
         }
 
@@ -101,7 +105,8 @@ router.post("/login", async (req, res) => {
 
         const user = await userRepository.findOne({
             where: {
-                email: email.trim().toLowerCase()
+                email: email.trim().toLowerCase(), 
+                roles: "user"
             }
         });
 
@@ -109,16 +114,24 @@ router.post("/login", async (req, res) => {
             return res.status(401).json({
                 message: "Invalid email or password"
             });
+
+        }
+        if (user.roles !== "user") {
+            return res.status(403).json({
+                message: "Access denied. Only users can log in."
+            });
         }
 
         const passwordMatches = await bcrypt.compare(
             password,
-            user.password
+            user.password,
+            user.roles
         );
 
         if (!passwordMatches) {
             return res.status(401).json({
-                message: "Invalid email or password"
+                message: "Invalid email or password",
+                roles: "user"   
             });
         }
 
@@ -128,7 +141,8 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign(
             {
-                userId: user.id
+                userId: user.id,
+                roles: user.roles
             },
             process.env.JWT_SECRET,
             {

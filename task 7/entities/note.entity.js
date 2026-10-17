@@ -30,5 +30,9 @@ module.exports = new EntitySchema({
             nullable: false,
             onDelete: "CASCADE"
         }
-    }
+    },
+    roles: {
+        type: "simple-array",
+        default: "user"
+    }   
 });

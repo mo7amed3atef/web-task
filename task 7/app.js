@@ -5,6 +5,10 @@ const { ILike } = require("typeorm");
 const { AppDataSource } = require("./db");
 const authMiddleware = require("./auth");
 const authRoutes = require("./auth.routes");
+const { Note } = require("./entities/note.entity.js");
+const { User } = require("./entities/user.entity.js");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -18,6 +22,7 @@ AppDataSource.initialize()
         console.log("Database connected successfully");
 
         const noteRepository = AppDataSource.getRepository("Note");
+        const userRepository = AppDataSource.getRepository("User");
 
         // 1. GET ALL NOTES - Current user only
         app.get("/notes", authMiddleware, async (req, res) => {
@@ -26,7 +31,7 @@ AppDataSource.initialize()
                     where: {
                         user: { id: req.user.userId }
                     }
-                });
+                }); 
 
                 return res.status(200).json({
                     message: "Notes retrieved successfully",

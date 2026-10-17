@@ -11,5 +11,5 @@ export const AppDataSource = new DataSource({
     database: "postgres",
 
     entities: [Note],
-
+    
 });
